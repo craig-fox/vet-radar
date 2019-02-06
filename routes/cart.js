@@ -8,7 +8,7 @@ const twoDecimals = (amount) => {
 }
 
 /*View cart items*/
-router.get('/items', function(req, res) {
+router.get('/items', (req, res) => {
     CartItem.find((err, items) => {
         if(err){
             res.send(err);
@@ -21,7 +21,7 @@ router.get('/items', function(req, res) {
 });
 
 /*Get cart item by name*/
-router.get('/items/:name', function(req, res) {
+router.get('/items/:name', (req, res) => {
     const query = {'name': req.params.name};
     CartItem.find(query, (err, items) => {
         if(err){
@@ -35,7 +35,7 @@ router.get('/items/:name', function(req, res) {
 });
 
 /*Get total cart price*/
-router.get('/total', function(req, res) {
+router.get('/total', (req, res) => {
     CartItem.find((err, items) => {
         if(err){
             res.send(err);
@@ -67,7 +67,7 @@ router.post('/add', (req,res)=> {
         })
         .then(json => {
             console.log("JSON", json);
-            if (json.length > 0) {
+            if (json.length > 0 && itemQuantity > 0) {
                 const price = json[0].price;
                 const name = json[0].name;
                 let quantity = parseInt(itemQuantity, 10);
@@ -80,7 +80,6 @@ router.post('/add', (req,res)=> {
                                 return response.json()
                             })
                             .then(json => {
-                                console.log("Spray", json)
                                 const existingItemQuantity = parseInt(json.quantity, 10);
                                 message = `Quantity for ${name} updated by ${quantity}`;
                                 quantity = quantity + existingItemQuantity;
@@ -102,7 +101,6 @@ router.post('/add', (req,res)=> {
                         let item = new CartItem()
 
                         item.set({"name":name, "price":twoDecimals(price), "quantity": quantity, "total": twoDecimals(total)});
-                        console.log("Item", item);
                         item.save(err=>{
                             if(err) {
                                 res.send(err)
@@ -113,6 +111,9 @@ router.post('/add', (req,res)=> {
                     }
                 })
 
+            } else if(itemQuantity <= 0){
+                message = "Quantity must be 1 or more";
+                res.json({"message": message});
             } else {
                 message = "Item not found in catalog";
                 res.json({"message": message});
@@ -124,11 +125,15 @@ router.post('/add', (req,res)=> {
 })
 
 /*Remove item from cart*/
-router.post('/remove', function(req,res){
+router.post('/remove', (req,res) => {
     let name = req.body.name;
     CartItem.remove({ name: name }, err => {
-        const message = `Removed product ${name}`;
-        res.json({"message":message});
+        if(err){
+            res.send(err);
+        } else {
+            const message = `Removed product ${name}`;
+            res.json({"message":message});
+        }
     });
 })
 

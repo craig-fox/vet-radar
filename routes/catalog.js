@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require('../models/product')
 
 router.get('/list', (req, res) => {
-  Product.find(function(err, products){
+  Product.find((err, products) => {
     if(err){
       res.send(err);
     }
